@@ -10,7 +10,7 @@ private:
   int _NbLignes, _NbCol;
   double _Dx, _Dy, _Dt, _tmax, _t,_Lx,_Ly, _gamma;
   std::vector<std::vector<double>> _f, _g, _U, _b, _ff, _gg, _Uapres;
-  std::vector<double> _a2, _c1car, _c2car, _alpha, _beta;
+  std::vector<double> _a2, _c1car, _c2car, _alpha, _beta, _p, _ptilde, _pscal;
 
 public:
 
@@ -37,6 +37,12 @@ public:
   double E(double x, double y);
 
   void initialize_u();
+
+  void calcul_p(double x, double y, int i, int j);
+
+  void calcul_p_tilde(double x, double y, int i, int j);
+
+  void calcul_pscal(double x, double y, int i, int j);
 
   void calcul_f(double x, double y, int i, int j);
 

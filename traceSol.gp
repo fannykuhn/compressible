@@ -10,5 +10,5 @@ set view 60,45
 set ztics
 unset key
 
-set output "result0.0_p.pdf"
-plot "result0.000000_p.txt" u 1:2:3 with image
+set output "resultats1_p.pdf"
+plot "result0.07978533_p.txt" u 1:2:3 with image

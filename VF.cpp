@@ -34,6 +34,10 @@ Probleme::Probleme(int NbLignes, int NbCol)
   _c2car.resize(_NbLignes*_NbCol);
   _alpha.resize(_NbLignes*_NbCol);
   _beta.resize(_NbLignes*_NbCol);
+  _p.resize(_NbLignes*_NbCol);
+  _ptilde.resize(_NbLignes*_NbCol);
+  _pscal.resize(_NbLignes*_NbCol);
+
 
   _Lx=2*3.1415;
   _Ly=2*3.1415;
@@ -67,6 +71,9 @@ Probleme::Probleme(int NbLignes, int NbCol)
       _c2car[j*_NbCol+i]=0.;
       _alpha[j*_NbCol+i]=0.;
       _beta[j*_NbCol+i]=0.;
+      _p[j*_NbCol+i]=0.;
+      _ptilde[j*_NbCol+i]=0.;
+      _pscal[j*_NbCol+i]=0.;
 
     }
   }
@@ -123,6 +130,7 @@ Probleme::~Probleme()
     return calculE;
   }
 
+
   void Probleme::initialize_u()
   {
     for (int i=0; i<_NbLignes; i++)
@@ -141,43 +149,48 @@ Probleme::~Probleme()
     }
   }
 
+  void Probleme::calcul_p(double x, double y, int i, int j)
+  {
+    _p[j*_NbCol+i]=(_gamma-1)*(_U[7][j*_NbCol+i]-(0.5/_U[0][j*_NbCol+i])*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))-0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)));
+  }
+
+  void Probleme::calcul_p_tilde(double x, double y, int i, int j)
+  {
+    _ptilde[j*_NbCol+i]= _p[j*_NbCol+i]+0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2));
+  }
+
+  void Probleme::calcul_pscal(double x, double y, int i, int j)
+  {
+    _pscal[j*_NbCol+i]=(1/_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[4][j*_NbCol+i]+_U[2][j*_NbCol+i]*_U[5][j*_NbCol+i]+_U[3][j*_NbCol+i]*_U[6][j*_NbCol+i]);
+  }
+
   void Probleme::calcul_f(double x, double y, int i, int j)
   {
     _f[0][j*_NbCol+i]=_U[1][j*_NbCol+i];
-    _f[1][j*_NbCol+i]=pow(_U[1][j*_NbCol+i],2)/_U[0][j*_NbCol+i]+(_gamma -1)*(_U[7][j*_NbCol+i]-0.5*((1/(_U[0][j*_NbCol+i]))*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))+pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)))+0.5*(pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2));
+    _f[1][j*_NbCol+i]=pow(_U[1][j*_NbCol+i],2)/_U[0][j*_NbCol+i]+_ptilde[j*_NbCol+i]-0.5*pow(_U[4][j*_NbCol+i],2);
     _f[2][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[2][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[5][j*_NbCol+i];
     _f[3][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[3][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[6][j*_NbCol+i];
     _f[4][j*_NbCol+i]=0.;
     _f[5][j*_NbCol+i]=-(1/_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[4][j*_NbCol+i]-_U[1][j*_NbCol+i]*_U[5][j*_NbCol+i]);
     _f[6][j*_NbCol+i]=(1/_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[6][j*_NbCol+i]-_U[3][j*_NbCol+i]*_U[4][j*_NbCol+i]);
-    double pscal,ptilde;
-    ptilde=(_gamma -1)*(_U[7][j*_NbCol+i]-0.5*((1/(_U[0][j*_NbCol+i]))*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))+pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)))+0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2));
-    pscal=(_U[4][j*_NbCol+i]/_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[4][j*_NbCol+i]+_U[2][j*_NbCol+i]*_U[5][j*_NbCol+i]+_U[3][j*_NbCol+i]*_U[6][j*_NbCol+i]);
-    _f[7][j*_NbCol+i]=_U[1][j*_NbCol+i]*_U[7][j*_NbCol+i]/_U[0][j*_NbCol+i]+ _U[1][j*_NbCol+i]/_U[0][j*_NbCol+i]*ptilde -pscal;
+    _f[7][j*_NbCol+i]=(_U[7][j*_NbCol+i]+_ptilde[j*_NbCol+i])*(_U[1][j*_NbCol+i]/_U[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_U[4][j*_NbCol+i];
   }
 
   void Probleme::calcul_g(double x, double y, int i, int j)
   {
-    double ptilde;
-    ptilde=(_gamma -1)*(_U[7][j*_NbCol+i]-0.5*((1/(_U[0][j*_NbCol+i]))*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))+pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)))+0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2));
-
     _g[0][j*_NbCol+i]=_U[2][j*_NbCol+i];
     _g[1][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[2][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[5][j*_NbCol+i];
-    _g[2][j*_NbCol+i]=pow(_U[2][j*_NbCol+i],2)/_U[0][j*_NbCol+i] + ptilde - 0.5*(pow(_U[4][j*_NbCol+i],2));
+    _g[2][j*_NbCol+i]=pow(_U[2][j*_NbCol+i],2)/_U[0][j*_NbCol+i] + _ptilde[j*_NbCol+i] - 0.5*(pow(_U[5][j*_NbCol+i],2));
     _g[3][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[3][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[6][j*_NbCol+i];
     _g[4][j*_NbCol+i]=(1/_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[4][j*_NbCol+i]-_U[1][j*_NbCol+i]*_U[5][j*_NbCol+i]);
     _g[5][j*_NbCol+i]=0.;
     _g[6][j*_NbCol+i]=(1/_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[6][j*_NbCol+i]-_U[3][j*_NbCol+i]*_U[5][j*_NbCol+i]);
-    double pscal;
-    pscal=(_U[5][j*_NbCol+i]/_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[4][j*_NbCol+i]+_U[2][j*_NbCol+i]*_U[5][j*_NbCol+i]+_U[3][j*_NbCol+i]*_U[6][j*_NbCol+i]);
-    _g[7][j*_NbCol+i]=_U[2][j*_NbCol+i]*_U[7][j*_NbCol+i]/_U[0][j*_NbCol+i]+ _U[2][j*_NbCol+i]*ptilde/_U[0][j*_NbCol+i] -pscal;
+    _g[7][j*_NbCol+i]=(_U[7][j*_NbCol+i] + _ptilde[j*_NbCol+i])*(_U[2][j*_NbCol+i]/_U[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_U[5][j*_NbCol+i];
   }
 
   void Probleme::calcul_a2(double x, double y, int i, int j)
   {
-    double p;
-    p=(_gamma-1)*(_U[7][j*_NbCol+i]-(0.5/_U[0][j*_NbCol+i])*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))+0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)));
-    _a2[j*_NbCol+i]=(_gamma*p)/_U[0][j*_NbCol+i];
+    _a2[j*_NbCol+i]=(_gamma*_p[j*_NbCol+i])/_U[0][j*_NbCol+i];
   }
 
   void Probleme::calcul_b(double x, double y, int i, int j)
@@ -239,6 +252,9 @@ Probleme::~Probleme()
       {
         for (int i=0; i<_NbCol; i++)
         {
+          Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
+          Probleme::calcul_p_tilde(i*_Dx, j*_Dy, i, j);
+          Probleme::calcul_pscal(i*_Dx, j*_Dy, i, j);
           Probleme::calcul_f(i*_Dx, j*_Dy, i, j);
           Probleme::calcul_g(i*_Dx, j*_Dy, i, j);
           Probleme::calcul_a2(i*_Dx, j*_Dy, i, j);
@@ -264,6 +280,7 @@ Probleme::~Probleme()
       {
         Probleme::flux_f(i*_Dx, (_NbLignes-1)*_Dy, i, _NbLignes-1);
       }
+
       // conditions aux limites
       for (int i=0; i<_NbCol; i++)
       {
@@ -340,7 +357,7 @@ Probleme::~Probleme()
     //  std::cout<<"t  "<< _t <<endl;
 
       _U=_Uapres;
-      Probleme::SaveIeration("result" + std::to_string(_t));
+      Probleme::SaveIeration("result" + std::to_string(_t)+ std::to_string((int(1e7*_t+0.05)-10*int(1e6*_t+0.05))) + std::to_string((int(1e8*_t+0.05)-10*int(1e7*_t+0.05))) );
 
     }
   //  Probleme::SaveIeration("result" + std::to_string(_t));
@@ -356,10 +373,13 @@ Probleme::~Probleme()
     {
       for (int j=0; j<_NbCol; j++)
       {
-          mon_fluxP << i*_Dx << "    " << j*_Dy << "     " <<_a2[j*_NbCol+i] <<"      "<< _b[0][j*_NbCol+i]<< "      "<<  _b[1][j*_NbCol+i]<< "      "<<  _b[2][j*_NbCol+i]<< "     "<< _c1car[j*_NbCol+i]<< "     " <<_c2car[j*_NbCol+i];
-          mon_fluxP << "     "<< _alpha[j*_NbCol+i]<< "         "<<_beta[j*_NbCol+i]<<endl;
+        //  mon_fluxP << i*_Dx << "    " << j*_Dy << "     " <<_a2[j*_NbCol+i] <<"      "<< _b[0][j*_NbCol+i]<< "      "<<  _b[1][j*_NbCol+i]<< "      "<<  _b[2][j*_NbCol+i]<< "     "<< _c1car[j*_NbCol+i]<< "     " <<_c2car[j*_NbCol+i];
+          //mon_fluxP << "     "<< _alpha[j*_NbCol+i]<< "         "<<_beta[j*_NbCol+i]<< std::endl;
 
-        //mon_fluxP << i*_Dx << " " << j*_Dy << " " <<(_gamma-1)*(_U[7][j*_NbCol+i]-(0.5/_U[0][j*_NbCol+i])*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))+0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2))) << std::endl;
+        mon_fluxP << i*_Dx << " " << j*_Dy << " " << _p[j*_NbCol+i] << std::endl;
+
+      //  mon_fluxP << i*_Dx << " " << j*_Dy << " " << _U[0][j*_NbCol+i] << std::endl;
+
       }
     }
 
