@@ -37,8 +37,8 @@ Probleme::Probleme(int NbLignes, int NbCol)
 
   _Lx=2*3.1415;
   _Ly=2*3.1415;
-  _Dx=_Lx/(_NbCol+1);
-  _Dy=_Ly/(_NbLignes+1);
+  _Dx=_Lx/(_NbCol);
+  _Dy=_Ly/(_NbLignes);
   _gamma=1.4;
   _tmax=3.1415;
 
