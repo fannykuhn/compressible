@@ -152,6 +152,10 @@ Probleme::~Probleme()
   void Probleme::calcul_p(double x, double y, int i, int j)
   {
     _p[j*_NbCol+i]=(_gamma-1.)*(_U[7][j*_NbCol+i]-(0.5/_U[0][j*_NbCol+i])*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))-0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)));
+    // if (_p[j*_NbCol+i]<0)
+    // {
+    //   _p[j*_NbCol+i]=0.;
+    // }
   }
 
   void Probleme::calcul_p_tilde(double x, double y, int i, int j)
@@ -373,7 +377,7 @@ Probleme::~Probleme()
         }
       }
 
-      std::cout<< "max B1 = " << maxB1 <<std::endl;
+    //  std::cout<< "max B1 = " << maxB1 <<std::endl;
       _Dt=0.45*_Dx/maxeigenvalues;
 
       for (int j=1; j<_NbLignes; j++)
@@ -424,17 +428,15 @@ Probleme::~Probleme()
   {
     std::ofstream mon_fluxP;
     mon_fluxP.open(fichier + "_p.txt", std::ios::out);
-    mon_fluxP << "# champ de pressions sur un maillage carré" << std::endl;
+    mon_fluxP << _t << std::endl;
 
     for (int i=0; i<_NbLignes; i++)
     {
       for (int j=0; j<_NbCol; j++)
       {
-          mon_fluxP << i*_Dx << "    " << j*_Dy << "     " <<_a2[j*_NbCol+i] <<"    "<< _b[0][j*_NbCol+i]<< "    "<<  _b[1][j*_NbCol+i]<< "    "<<  _b[2][j*_NbCol+i]<<std::endl;//<< "     "<< _c1car[j*_NbCol+i]<< "     " <<_c2car[j*_NbCol+i];
+        mon_fluxP << i*_Dx << "    " << j*_Dy << "     " <<_a2[j*_NbCol+i] <<"    "<< _b[0][j*_NbCol+i]<< "    "<<  _b[1][j*_NbCol+i]<< "    "<<  _b[2][j*_NbCol+i]<<std::endl;//<< "     "<< _c1car[j*_NbCol+i]<< "     " <<_c2car[j*_NbCol+i];
           //mon_fluxP << "     "<< _alpha[j*_NbCol+i]<< "         "<<_beta[j*_NbCol+i]<< std::endl;
-
-        //mon_fluxP << i*_Dx << " " << j*_Dy << " " << _p[j*_NbCol+i] << std::endl;
-
+      //  mon_fluxP << i*_Dx << " " << j*_Dy << " " << _U[0][j*_NbCol+i] << "        " << _p[j*_NbCol+i] << std::endl;
       //  mon_fluxP << i*_Dx << " " << j*_Dy << " " << _U[0][j*_NbCol+i] << std::endl;
 
       }
