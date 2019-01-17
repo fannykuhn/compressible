@@ -12,7 +12,12 @@ Probleme::Probleme(int NbLignes, int NbCol)
   _g.resize(8);
   _ff.resize(8);
   _gg.resize(8);
-
+  _UE.resize(8);
+  _UN.resize(8);
+  _US.resize(8);
+  _UW.resize(8);
+  _Uy.resize(8);
+  _Ux.resize(8);
   for (int j=0; j<8; j++)
   {
     _U[j].resize(_NbLignes*_NbCol);
@@ -21,6 +26,12 @@ Probleme::Probleme(int NbLignes, int NbCol)
     _g[j].resize(_NbLignes*_NbCol);
     _ff[j].resize(_NbLignes*_NbCol);
     _gg[j].resize(_NbLignes*_NbCol);
+    _UN[j].resize(_NbLignes*_NbCol);
+    _US[j].resize(_NbLignes*_NbCol);
+    _UE[j].resize(_NbLignes*_NbCol);
+    _UW[j].resize(_NbLignes*_NbCol);
+    _Ux[j].resize(_NbLignes*_NbCol);
+    _Uy[j].resize(_NbLignes*_NbCol);
   }
 
   _b.resize(3);
@@ -59,6 +70,12 @@ Probleme::Probleme(int NbLignes, int NbCol)
         _g[indice][j*_NbCol+i]=0.;
         _ff[indice][j*_NbCol+i]=0.;
         _gg[indice][j*_NbCol+i]=0.;
+        _UN[indice][j*_NbCol+i]=0.;
+        _US[indice][j*_NbCol+i]=0.;
+        _UE[indice][j*_NbCol+i]=0.;
+        _UW[indice][j*_NbCol+i]=0.;
+        _Ux[indice][j*_NbCol+i]=0.;
+        _Uy[indice][j*_NbCol+i]=0.;
       }
 
       for (int k=0; k<3; k++)
@@ -82,401 +99,707 @@ Probleme::Probleme(int NbLignes, int NbCol)
 Probleme::~Probleme()
 {}
 
-  double Probleme::rho(double x, double y)
-  {
-    return _gamma*_gamma;
-  }
+double Probleme::rho(double x, double y)
+{
+  return _gamma*_gamma;
+}
 
-  double Probleme::u1(double x, double y)
-  {
-    return -sin(y);
-  }
+double Probleme::u1(double x, double y)
+{
+  return -sin(y);
+}
 
-  double Probleme::u2(double x, double y)
-  {
-    return sin(x);
-  }
+double Probleme::u2(double x, double y)
+{
+  return sin(x);
+}
 
-  double Probleme::u3(double x, double y)
-  {
-    return 0.;
-  }
+double Probleme::u3(double x, double y)
+{
+  return 0.;
+}
 
-  double Probleme::B1(double x, double y)
-  {
-    return -sin(y);
-  }
+double Probleme::B1(double x, double y)
+{
+  return -sin(y);
+}
 
-  double Probleme::B2(double x, double y)
-  {
-    return sin(2.*x);
-  }
+double Probleme::B2(double x, double y)
+{
+  return sin(2.*x);
+}
 
-  double Probleme::B3(double x, double y)
-  {
-    return 0.;
-  }
+double Probleme::B3(double x, double y)
+{
+  return 0.;
+}
 
-  double Probleme::p(double x, double y)
-  {
-    return _gamma;
-  }
+double Probleme::p(double x, double y)
+{
+  return _gamma;
+}
 
-  double Probleme::E(double x, double y)
-  {
-    double pscal, calculE;
-    pscal= Probleme::rho(x,y)*(Probleme::u1(x,y)*Probleme::u1(x,y)+Probleme::u2(x,y)*Probleme::u2(x,y)+Probleme::u3(x,y)*Probleme::u3(x,y))+Probleme::B1(x,y)*Probleme::B1(x,y)+Probleme::B2(x,y)*Probleme::B2(x,y)+Probleme::B3(x,y)*Probleme::B3(x,y);
-    calculE= Probleme::p(x,y)*(1./(_gamma-1.))+0.5*pscal;
-    return calculE;
-  }
+double Probleme::E(double x, double y)
+{
+  double pscal, calculE;
+  pscal= Probleme::rho(x,y)*(Probleme::u1(x,y)*Probleme::u1(x,y)+Probleme::u2(x,y)*Probleme::u2(x,y)+Probleme::u3(x,y)*Probleme::u3(x,y))+Probleme::B1(x,y)*Probleme::B1(x,y)+Probleme::B2(x,y)*Probleme::B2(x,y)+Probleme::B3(x,y)*Probleme::B3(x,y);
+  calculE= Probleme::p(x,y)*(1./(_gamma-1.))+0.5*pscal;
+  return calculE;
+}
 
 
-  void Probleme::initialize_u()
+void Probleme::initialize_u()
+{
+  for (int i=0; i<_NbLignes; i++)
   {
-    for (int i=0; i<_NbLignes; i++)
+    for (int j=0; j<_NbCol; j++)
     {
-      for (int j=0; j<_NbCol; j++)
-      {
-        _U[0][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy);
-        _U[1][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy)*Probleme::u1(i*_Dx,j*_Dy);
-        _U[2][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy)*Probleme::u2(i*_Dx,j*_Dy);
-        _U[3][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy)*Probleme::u3(i*_Dx,j*_Dy);
-        _U[4][j*_NbCol+i]=Probleme::B1(i*_Dx,j*_Dy);
-        _U[5][j*_NbCol+i]=Probleme::B2(i*_Dx,j*_Dy);
-        _U[6][j*_NbCol+i]=Probleme::B3(i*_Dx,j*_Dy);
-        _U[7][j*_NbCol+i]=Probleme::E(i*_Dx,j*_Dy);
-      }
+      _U[0][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy);
+      _U[1][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy)*Probleme::u1(i*_Dx,j*_Dy);
+      _U[2][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy)*Probleme::u2(i*_Dx,j*_Dy);
+      _U[3][j*_NbCol+i]=Probleme::rho(i*_Dx,j*_Dy)*Probleme::u3(i*_Dx,j*_Dy);
+      _U[4][j*_NbCol+i]=Probleme::B1(i*_Dx,j*_Dy);
+      _U[5][j*_NbCol+i]=Probleme::B2(i*_Dx,j*_Dy);
+      _U[6][j*_NbCol+i]=Probleme::B3(i*_Dx,j*_Dy);
+      _U[7][j*_NbCol+i]=Probleme::E(i*_Dx,j*_Dy);
     }
   }
+}
 
-  void Probleme::calcul_p(double x, double y, int i, int j)
+void Probleme::calcul_p(double x, double y, int i, int j)
+{
+  _p[j*_NbCol+i]=(_gamma-1.)*(_U[7][j*_NbCol+i]-(0.5/_U[0][j*_NbCol+i])*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))-0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)));
+  // if (_p[j*_NbCol+i]<0)
+  // {
+  //   _p[j*_NbCol+i]=0.;
+  // }
+}
+
+void Probleme::calcul_p_tilde(double x, double y, int i, int j)
+{
+  _ptilde[j*_NbCol+i]= _p[j*_NbCol+i]+0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2));
+}
+
+void Probleme::calcul_pscal(double x, double y, int i, int j)
+{
+  _pscal[j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[4][j*_NbCol+i]+_U[2][j*_NbCol+i]*_U[5][j*_NbCol+i]+_U[3][j*_NbCol+i]*_U[6][j*_NbCol+i]);
+}
+
+void Probleme::calcul_f(double x, double y, int i, int j)
+{
+  _f[0][j*_NbCol+i]=_U[1][j*_NbCol+i];
+  _f[1][j*_NbCol+i]=pow(_U[1][j*_NbCol+i],2)/_U[0][j*_NbCol+i]+_ptilde[j*_NbCol+i]-0.5*pow(_U[4][j*_NbCol+i],2);
+  _f[2][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[2][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[5][j*_NbCol+i];
+  _f[3][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[3][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[6][j*_NbCol+i];
+  _f[4][j*_NbCol+i]=0.;
+  _f[5][j*_NbCol+i]=-(1./_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[4][j*_NbCol+i]-_U[1][j*_NbCol+i]*_U[5][j*_NbCol+i]);
+  _f[6][j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[6][j*_NbCol+i]-_U[3][j*_NbCol+i]*_U[4][j*_NbCol+i]);
+  _f[7][j*_NbCol+i]=(_U[7][j*_NbCol+i]+_ptilde[j*_NbCol+i])*(_U[1][j*_NbCol+i]/_U[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_U[4][j*_NbCol+i];
+}
+
+void Probleme::calcul_g(double x, double y, int i, int j)
+{
+  _g[0][j*_NbCol+i]=_U[2][j*_NbCol+i];
+  _g[1][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[2][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[5][j*_NbCol+i];
+  _g[2][j*_NbCol+i]=pow(_U[2][j*_NbCol+i],2)/_U[0][j*_NbCol+i] + _ptilde[j*_NbCol+i] - 0.5*(pow(_U[5][j*_NbCol+i],2));
+  _g[3][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[3][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[6][j*_NbCol+i];
+  _g[4][j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[4][j*_NbCol+i]-_U[1][j*_NbCol+i]*_U[5][j*_NbCol+i]);
+  _g[5][j*_NbCol+i]=0.;
+  _g[6][j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[6][j*_NbCol+i]-_U[3][j*_NbCol+i]*_U[5][j*_NbCol+i]);
+  _g[7][j*_NbCol+i]=(_U[7][j*_NbCol+i] + _ptilde[j*_NbCol+i])*(_U[2][j*_NbCol+i]/_U[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_U[5][j*_NbCol+i];
+}
+
+void Probleme::calcul_a2(double x, double y, int i, int j)
+{
+  _a2[j*_NbCol+i]=(_gamma*_p[j*_NbCol+i])/_U[0][j*_NbCol+i];
+}
+
+void Probleme::calcul_b(double x, double y, int i, int j)
+{
+  _b[0][j*_NbCol+i]=_U[4][j*_NbCol+i]/(sqrt(_U[0][j*_NbCol+i]));
+  _b[1][j*_NbCol+i]=_U[5][j*_NbCol+i]/(sqrt(_U[0][j*_NbCol+i]));
+  _b[2][j*_NbCol+i]=_U[6][j*_NbCol+i]/(sqrt(_U[0][j*_NbCol+i]));
+}
+
+void Probleme::calcul_ck(double x, double y, int i, int j, int k)
+{
+  double bkcar,c,bcarre;
+  bcarre=pow(_b[0][j*_NbCol+i],2)+pow(_b[1][j*_NbCol+i],2)+pow(_b[2][j*_NbCol+i],2);
+  c=0.5*(_a2[j*_NbCol+i]+bcarre);
+  if (k==1)
   {
-    _p[j*_NbCol+i]=(_gamma-1.)*(_U[7][j*_NbCol+i]-(0.5/_U[0][j*_NbCol+i])*(pow(_U[1][j*_NbCol+i],2)+pow(_U[2][j*_NbCol+i],2)+pow(_U[3][j*_NbCol+i],2))-0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2)));
-    // if (_p[j*_NbCol+i]<0)
-    // {
-    //   _p[j*_NbCol+i]=0.;
-    // }
+    bkcar=pow(_b[0][j*_NbCol+i],2);
+    _c1car[j*_NbCol+i]=c+0.5*sqrt((pow(_a2[j*_NbCol+i]+bcarre,2))-4*_a2[j*_NbCol+i]*bkcar);
+  }
+  else if (k==2)
+  {
+    bkcar=pow(_b[1][j*_NbCol+i],2);
+    _c2car[j*_NbCol+i]=c+0.5*sqrt((pow(_a2[j*_NbCol+i]+bcarre,2))-4*_a2[j*_NbCol+i]*bkcar);
+  }
+}
+
+void Probleme::calcul_alpha_beta(double x, double y, int i, int j)
+{
+  _alpha[j*_NbCol+i]=abs(_U[1][j*_NbCol+i]/_U[0][j*_NbCol+i])+abs(sqrt(_c1car[j*_NbCol+i]));
+  _beta[j*_NbCol+i]=abs(_U[2][j*_NbCol+i]/_U[0][j*_NbCol+i])+abs(sqrt(_c2car[j*_NbCol+i]));
+}
+
+void Probleme::flux_f(double x, double y, int i, int j)
+{
+  for (int k=0; k<5; k++)
+  {
+    _ff[k][j*_NbCol+i]=0.5*(_f[k][j*_NbCol+i]+_f[k][j*_NbCol+i+1])-max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[k][j*_NbCol+i+1]-_U[k][j*_NbCol+i]);
   }
 
-  void Probleme::calcul_p_tilde(double x, double y, int i, int j)
-  {
-    _ptilde[j*_NbCol+i]= _p[j*_NbCol+i]+0.5*(pow(_U[4][j*_NbCol+i],2)+pow(_U[5][j*_NbCol+i],2)+pow(_U[6][j*_NbCol+i],2));
-  }
+  _ff[5][j*_NbCol+i]=0.5*(_f[5][j*_NbCol+i]+_f[5][j*_NbCol+i+1])+max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[5][j*_NbCol+i+1]-_U[5][j*_NbCol+i]);
+  _ff[6][j*_NbCol+i]=0.5*(_f[6][j*_NbCol+i]+_f[6][j*_NbCol+i+1])-max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[6][j*_NbCol+i+1]-_U[6][j*_NbCol+i]);
+  _ff[7][j*_NbCol+i]=0.5*(_f[7][j*_NbCol+i]+_f[7][j*_NbCol+i+1])-max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[7][j*_NbCol+i+1]-_U[7][j*_NbCol+i]);
+}
 
-  void Probleme::calcul_pscal(double x, double y, int i, int j)
+void Probleme::flux_g(double x, double y, int i, int j)
+{
+  for (int k=0; k<8; k++)
   {
-    _pscal[j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[4][j*_NbCol+i]+_U[2][j*_NbCol+i]*_U[5][j*_NbCol+i]+_U[3][j*_NbCol+i]*_U[6][j*_NbCol+i]);
+    _gg[k][j*_NbCol+i]=0.5*(_g[k][j*_NbCol+i]+_g[k][(j+1)*_NbCol+i])-max(abs(_beta[j*_NbCol+i]),abs(_beta[(j+1)*_NbCol+i]))*(_U[k][(j+1)*_NbCol+i]-_U[k][j*_NbCol+i]);
   }
+}
 
-  void Probleme::calcul_f(double x, double y, int i, int j)
+void Probleme::TimeIteration_ordre1()
+{
+  int compteur;
+  compteur =0;
+  _t=0.;
+  while (_t<=_tmax)
   {
-    _f[0][j*_NbCol+i]=_U[1][j*_NbCol+i];
-    _f[1][j*_NbCol+i]=pow(_U[1][j*_NbCol+i],2)/_U[0][j*_NbCol+i]+_ptilde[j*_NbCol+i]-0.5*pow(_U[4][j*_NbCol+i],2);
-    _f[2][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[2][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[5][j*_NbCol+i];
-    _f[3][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[3][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[6][j*_NbCol+i];
-    _f[4][j*_NbCol+i]=0.;
-    _f[5][j*_NbCol+i]=-(1./_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[4][j*_NbCol+i]-_U[1][j*_NbCol+i]*_U[5][j*_NbCol+i]);
-    _f[6][j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[1][j*_NbCol+i]*_U[6][j*_NbCol+i]-_U[3][j*_NbCol+i]*_U[4][j*_NbCol+i]);
-    _f[7][j*_NbCol+i]=(_U[7][j*_NbCol+i]+_ptilde[j*_NbCol+i])*(_U[1][j*_NbCol+i]/_U[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_U[4][j*_NbCol+i];
-  }
+    Probleme::SaveIeration("result" + std::to_string(compteur) );
 
-  void Probleme::calcul_g(double x, double y, int i, int j)
-  {
-    _g[0][j*_NbCol+i]=_U[2][j*_NbCol+i];
-    _g[1][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[2][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[5][j*_NbCol+i];
-    _g[2][j*_NbCol+i]=pow(_U[2][j*_NbCol+i],2)/_U[0][j*_NbCol+i] + _ptilde[j*_NbCol+i] - 0.5*(pow(_U[5][j*_NbCol+i],2));
-    _g[3][j*_NbCol+i]=(_U[1][j*_NbCol+i]*_U[3][j*_NbCol+i])/_U[0][j*_NbCol+i]-_U[4][j*_NbCol+i]*_U[6][j*_NbCol+i];
-    _g[4][j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[4][j*_NbCol+i]-_U[1][j*_NbCol+i]*_U[5][j*_NbCol+i]);
-    _g[5][j*_NbCol+i]=0.;
-    _g[6][j*_NbCol+i]=(1./_U[0][j*_NbCol+i])*(_U[2][j*_NbCol+i]*_U[6][j*_NbCol+i]-_U[3][j*_NbCol+i]*_U[5][j*_NbCol+i]);
-    _g[7][j*_NbCol+i]=(_U[7][j*_NbCol+i] + _ptilde[j*_NbCol+i])*(_U[2][j*_NbCol+i]/_U[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_U[5][j*_NbCol+i];
-  }
-
-  void Probleme::calcul_a2(double x, double y, int i, int j)
-  {
-    _a2[j*_NbCol+i]=(_gamma*_p[j*_NbCol+i])/_U[0][j*_NbCol+i];
-  }
-
-  void Probleme::calcul_b(double x, double y, int i, int j)
-  {
-    _b[0][j*_NbCol+i]=_U[4][j*_NbCol+i]/(sqrt(_U[0][j*_NbCol+i]));
-    _b[1][j*_NbCol+i]=_U[5][j*_NbCol+i]/(sqrt(_U[0][j*_NbCol+i]));
-    _b[2][j*_NbCol+i]=_U[6][j*_NbCol+i]/(sqrt(_U[0][j*_NbCol+i]));
-  }
-
-  void Probleme::calcul_ck(double x, double y, int i, int j, int k)
-  {
-    double bkcar,c,bcarre;
-    bcarre=pow(_b[0][j*_NbCol+i],2)+pow(_b[1][j*_NbCol+i],2)+pow(_b[2][j*_NbCol+i],2);
-    c=0.5*(_a2[j*_NbCol+i]+bcarre);
-    if (k==1)
+    for (int j=0; j<_NbLignes; j++)
     {
-      bkcar=pow(_b[0][j*_NbCol+i],2);
-      _c1car[j*_NbCol+i]=c+0.5*sqrt((pow(_a2[j*_NbCol+i]+bcarre,2))-4*_a2[j*_NbCol+i]*bkcar);
-    }
-    else if (k==2)
-    {
-      bkcar=pow(_b[1][j*_NbCol+i],2);
-      _c2car[j*_NbCol+i]=c+0.5*sqrt((pow(_a2[j*_NbCol+i]+bcarre,2))-4*_a2[j*_NbCol+i]*bkcar);
-    }
-  }
-
-  void Probleme::calcul_alpha_beta(double x, double y, int i, int j)
-  {
-    _alpha[j*_NbCol+i]=abs(_U[1][j*_NbCol+i]/_U[0][j*_NbCol+i])+abs(sqrt(_c1car[j*_NbCol+i]));
-    _beta[j*_NbCol+i]=abs(_U[2][j*_NbCol+i]/_U[0][j*_NbCol+i])+abs(sqrt(_c2car[j*_NbCol+i]));
-  }
-
-  void Probleme::flux_f(double x, double y, int i, int j)
-  {
-    for (int k=0; k<5; k++)
-    {
-      _ff[k][j*_NbCol+i]=0.5*(_f[k][j*_NbCol+i]+_f[k][j*_NbCol+i+1])-max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[k][j*_NbCol+i+1]-_U[k][j*_NbCol+i]);
-    }
-
-    _ff[5][j*_NbCol+i]=0.5*(_f[5][j*_NbCol+i]+_f[5][j*_NbCol+i+1])+max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[5][j*_NbCol+i+1]-_U[5][j*_NbCol+i]);
-    _ff[6][j*_NbCol+i]=0.5*(_f[6][j*_NbCol+i]+_f[6][j*_NbCol+i+1])-max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[6][j*_NbCol+i+1]-_U[6][j*_NbCol+i]);
-    _ff[7][j*_NbCol+i]=0.5*(_f[7][j*_NbCol+i]+_f[7][j*_NbCol+i+1])-max(abs(_alpha[j*_NbCol+i]),abs(_alpha[j*_NbCol+i+1]))*(_U[7][j*_NbCol+i+1]-_U[7][j*_NbCol+i]);
-  }
-
-  void Probleme::flux_g(double x, double y, int i, int j)
-  {
-    for (int k=0; k<8; k++)
-    {
-      _gg[k][j*_NbCol+i]=0.5*(_g[k][j*_NbCol+i]+_g[k][(j+1)*_NbCol+i])-max(abs(_beta[j*_NbCol+i]),abs(_beta[(j+1)*_NbCol+i]))*(_U[k][(j+1)*_NbCol+i]-_U[k][j*_NbCol+i]);
-    }
-  }
-
-  void Probleme::TimeIteration()
-  {
-    int compteur;
-    compteur =0;
-    _t=0.;
-    while (_t<=_tmax)
-    {
-      Probleme::SaveIeration("result" + std::to_string(compteur) );
-
-      for (int j=0; j<_NbLignes; j++)
-      {
-        for (int i=0; i<_NbCol; i++)
-        {
-          Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
-          Probleme::calcul_p_tilde(i*_Dx, j*_Dy, i, j);
-          Probleme::calcul_pscal(i*_Dx, j*_Dy, i, j);
-          Probleme::calcul_f(i*_Dx, j*_Dy, i, j);
-          Probleme::calcul_g(i*_Dx, j*_Dy, i, j);
-          Probleme::calcul_a2(i*_Dx, j*_Dy, i, j);
-          Probleme::calcul_b(i*_Dx, j*_Dy, i, j);
-          Probleme::calcul_ck(i*_Dx, j*_Dy, i, j, 1);
-          Probleme::calcul_ck(i*_Dx, j*_Dy, i, j, 2);
-          Probleme::calcul_alpha_beta(i*_Dx, j*_Dy, i, j);
-        }
-      }
-      for (int j=0; j<_NbLignes-1; j++)
-      {
-        for (int i=0; i<_NbCol-1; i++)
-        {
-          Probleme::flux_f(i*_Dx, j*_Dy, i, j);
-          Probleme::flux_g(i*_Dx, j*_Dy, i, j);
-        }
-      }
-      for (int j=0; j<_NbLignes-1; j++)
-      {
-        Probleme::flux_g((_NbCol-1)*_Dx, j*_Dy, _NbCol-1, j);
-      }
-      for (int i=0; i<_NbCol-1; i++)
-      {
-        Probleme::flux_f(i*_Dx, (_NbLignes-1)*_Dy, i, _NbLignes-1);
-      }
-
-      // conditions aux limites
       for (int i=0; i<_NbCol; i++)
       {
-        for (int k=0; k<8; k++)
-        {
-          _gg[k][(_NbLignes-1)*_NbCol+i]=0.5*(_g[k][(_NbLignes-1)*_NbCol+i]+_g[k][i])-max(abs(_beta[(_NbLignes-1)*_NbCol+i]),abs(_beta[i]))*(_U[k][i]-_U[k][(_NbLignes-1)*_NbCol+i]);
-        }
+        Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_p_tilde(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_pscal(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_f(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_g(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_a2(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_b(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_ck(i*_Dx, j*_Dy, i, j, 1);
+        Probleme::calcul_ck(i*_Dx, j*_Dy, i, j, 2);
+        Probleme::calcul_alpha_beta(i*_Dx, j*_Dy, i, j);
       }
-
-      for (int j=0; j<_NbLignes;j++)
+    }
+    for (int j=0; j<_NbLignes-1; j++)
+    {
+      for (int i=0; i<_NbCol-1; i++)
       {
-        for (int k=0; k<5; k++)
-        {
-          _ff[k][j*_NbCol+_NbCol-1]=0.5*(_f[k][j*_NbCol+_NbCol-1]+_f[k][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[k][j*_NbCol]-_U[k][j*_NbCol+_NbCol-1]);
-        }
-
-        _ff[5][j*_NbCol+_NbCol-1]=0.5*(_f[5][j*_NbCol+_NbCol-1]+_f[5][j*_NbCol])+max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[5][j*_NbCol]-_U[5][j*_NbCol+_NbCol-1]);
-        _ff[6][j*_NbCol+_NbCol-1]=0.5*(_f[6][j*_NbCol+_NbCol-1]+_f[6][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[6][j*_NbCol]-_U[6][j*_NbCol+_NbCol-1]);
-        _ff[7][j*_NbCol+_NbCol-1]=0.5*(_f[7][j*_NbCol+_NbCol-1]+_f[7][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[7][j*_NbCol]-_U[7][j*_NbCol+_NbCol-1]);
+        Probleme::flux_f(i*_Dx, j*_Dy, i, j);
+        Probleme::flux_g(i*_Dx, j*_Dy, i, j);
       }
+    }
+    for (int j=0; j<_NbLignes-1; j++)
+    {
+      Probleme::flux_g((_NbCol-1)*_Dx, j*_Dy, _NbCol-1, j);
+    }
+    for (int i=0; i<_NbCol-1; i++)
+    {
+      Probleme::flux_f(i*_Dx, (_NbLignes-1)*_Dy, i, _NbLignes-1);
+    }
 
-
-      double maxeigenvalues,test,maxa,maxb,minrho,maxB1;
-      maxeigenvalues=0;
-      maxa = 0;
-      maxb = 0;
-      minrho = 12;
-      maxB1 = 0;
-      for (int j=0; j<_NbLignes; j++)
+    // conditions aux limites
+    for (int i=0; i<_NbCol; i++)
+    {
+      for (int k=0; k<8; k++)
       {
-        for (int i=0; i<_NbCol; i++)
-        {
-          test=max(abs(_alpha[j*_NbCol+i]),abs(_beta[j*_NbCol+i]));
-          if (test>maxeigenvalues)
-          {
-            maxeigenvalues=test;
-          }
-        }
+        _gg[k][(_NbLignes-1)*_NbCol+i]=0.5*(_g[k][(_NbLignes-1)*_NbCol+i]+_g[k][i])-max(abs(_beta[(_NbLignes-1)*_NbCol+i]),abs(_beta[i]))*(_U[k][i]-_U[k][(_NbLignes-1)*_NbCol+i]);
       }
+    }
 
-      for (int j=0; j<_NbLignes; j++)
+    for (int j=0; j<_NbLignes;j++)
+    {
+      for (int k=0; k<5; k++)
       {
-        for (int i=0; i<_NbCol; i++)
-        {
-          test=_a2[j*_NbCol+i];
-          if (test>maxa)
-          {
-            maxa=test;
-          }
-        }
+        _ff[k][j*_NbCol+_NbCol-1]=0.5*(_f[k][j*_NbCol+_NbCol-1]+_f[k][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[k][j*_NbCol]-_U[k][j*_NbCol+_NbCol-1]);
       }
 
-      for (int j=0; j<_NbLignes; j++)
+      _ff[5][j*_NbCol+_NbCol-1]=0.5*(_f[5][j*_NbCol+_NbCol-1]+_f[5][j*_NbCol])+max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[5][j*_NbCol]-_U[5][j*_NbCol+_NbCol-1]);
+      _ff[6][j*_NbCol+_NbCol-1]=0.5*(_f[6][j*_NbCol+_NbCol-1]+_f[6][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[6][j*_NbCol]-_U[6][j*_NbCol+_NbCol-1]);
+      _ff[7][j*_NbCol+_NbCol-1]=0.5*(_f[7][j*_NbCol+_NbCol-1]+_f[7][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[7][j*_NbCol]-_U[7][j*_NbCol+_NbCol-1]);
+    }
+
+
+    double maxeigenvalues,test,maxa,maxb,minrho,maxB1;
+    maxeigenvalues=0;
+    maxa = 0;
+    maxb = 0;
+    minrho = 12;
+    maxB1 = 0;
+    for (int j=0; j<_NbLignes; j++)
+    {
+      for (int i=0; i<_NbCol; i++)
       {
-        for (int i=0; i<_NbCol; i++)
+        test=max(abs(_alpha[j*_NbCol+i]),abs(_beta[j*_NbCol+i]));
+        if (test>maxeigenvalues)
         {
-          test=_b[0][j*_NbCol+i];
-          if (test>maxb)
-          {
-            maxb=test;
-          }
+          maxeigenvalues=test;
         }
       }
+    }
 
-      for (int j=0; j<_NbLignes; j++)
+    for (int j=0; j<_NbLignes; j++)
+    {
+      for (int i=0; i<_NbCol; i++)
       {
-        for (int i=0; i<_NbCol; i++)
+        test=_a2[j*_NbCol+i];
+        if (test>maxa)
         {
-          test=_U[0][j*_NbCol+i];
-          if (test<minrho)
-          {
-            minrho=test;
-          }
+          maxa=test;
         }
       }
+    }
 
-      for (int j=0; j<_NbLignes; j++)
+    for (int j=0; j<_NbLignes; j++)
+    {
+      for (int i=0; i<_NbCol; i++)
       {
-        for (int i=0; i<_NbCol; i++)
+        test=_b[0][j*_NbCol+i];
+        if (test>maxb)
         {
-          test=_U[4][j*_NbCol+i];
-          if (test>maxB1)
-          {
-            maxB1=test;
-          }
+          maxb=test;
         }
       }
+    }
 
-    //  std::cout<< "max B1 = " << maxB1 <<std::endl;
-      _Dt=0.45*_Dx/maxeigenvalues;
-
-      for (int j=1; j<_NbLignes; j++)
+    for (int j=0; j<_NbLignes; j++)
+    {
+      for (int i=0; i<_NbCol; i++)
       {
-        for (int i=1; i<_NbCol; i++)
+        test=_U[0][j*_NbCol+i];
+        if (test<minrho)
         {
-          for(int indice=0; indice<8; indice++)
-          {
-            _Uapres[indice][j*_NbCol+i]=_U[indice][j*_NbCol+i]-_Dt*((1./_Dx)*(_ff[indice][j*_NbCol+i]-_ff[indice][j*_NbCol+i-1])+(1./_Dy)*(_gg[indice][j*_NbCol+i]-_gg[indice][(j-1)*_NbCol+i]));
-          }
+          minrho=test;
         }
       }
+    }
 
+    for (int j=0; j<_NbLignes; j++)
+    {
+      for (int i=0; i<_NbCol; i++)
+      {
+        test=_U[4][j*_NbCol+i];
+        if (test>maxB1)
+        {
+          maxB1=test;
+        }
+      }
+    }
+
+  //  std::cout<< "max B1 = " << maxB1 <<std::endl;
+    _Dt=0.45*_Dx/maxeigenvalues;
+
+    for (int j=1; j<_NbLignes; j++)
+    {
       for (int i=1; i<_NbCol; i++)
       {
         for(int indice=0; indice<8; indice++)
         {
-          _Uapres[indice][i]=_U[indice][i]-_Dt*((1./_Dx)*(_ff[indice][i]-_ff[indice][i-1])+(1./_Dy)*(_gg[indice][i]-_gg[indice][(_NbLignes-1)*_NbCol+i]));
-
+          _Uapres[indice][j*_NbCol+i]=_U[indice][j*_NbCol+i]-_Dt*((1./_Dx)*(_ff[indice][j*_NbCol+i]-_ff[indice][j*_NbCol+i-1])+(1./_Dy)*(_gg[indice][j*_NbCol+i]-_gg[indice][(j-1)*_NbCol+i]));
         }
       }
+    }
 
-      for (int j=1; j<_NbLignes; j++)
-      {
-        for(int indice=0; indice<8; indice++)
-        {
-          _Uapres[indice][j*_NbCol]=_U[indice][j*_NbCol]-_Dt*((1./_Dx)*(_ff[indice][j*_NbCol]-_ff[indice][j*_NbCol+_NbCol-1])+(1./_Dy)*(_gg[indice][j*_NbCol]-_gg[indice][(j-1)*_NbCol]));
-        }
-      }
-
+    for (int i=1; i<_NbCol; i++)
+    {
       for(int indice=0; indice<8; indice++)
       {
-        _Uapres[indice][0]=_U[indice][0]-_Dt*((1./_Dx)*(_ff[indice][0]-_ff[indice][_NbCol-1])+(1./_Dy)*(_gg[indice][0]-_gg[indice][_NbLignes-1]));
+        _Uapres[indice][i]=_U[indice][i]-_Dt*((1./_Dx)*(_ff[indice][i]-_ff[indice][i-1])+(1./_Dy)*(_gg[indice][i]-_gg[indice][(_NbLignes-1)*_NbCol+i]));
+
       }
-
-      _t=_t+_Dt;
-
-      compteur +=1;
-  //    std::cout<< compteur <<std::endl;
-
-      _U=_Uapres;
-
     }
-  //  Probleme::SaveIeration("result" + std::to_string(_t));
+
+    for (int j=1; j<_NbLignes; j++)
+    {
+      for(int indice=0; indice<8; indice++)
+      {
+        _Uapres[indice][j*_NbCol]=_U[indice][j*_NbCol]-_Dt*((1./_Dx)*(_ff[indice][j*_NbCol]-_ff[indice][j*_NbCol+_NbCol-1])+(1./_Dy)*(_gg[indice][j*_NbCol]-_gg[indice][(j-1)*_NbCol]));
+      }
+    }
+
+    for(int indice=0; indice<8; indice++)
+    {
+      _Uapres[indice][0]=_U[indice][0]-_Dt*((1./_Dx)*(_ff[indice][0]-_ff[indice][_NbCol-1])+(1./_Dy)*(_gg[indice][0]-_gg[indice][_NbLignes-1]));
+    }
+
+    _t=_t+_Dt;
+
+    compteur +=1;
+   //  std::cout<< compteur <<std::endl;
+
+    _U=_Uapres;
+
+  }
+    //  Probleme::SaveIeration("result" + std::to_string(_t));
+}
+
+double Probleme::minmod(double a, double b, double c)
+{
+  if (a*b<0 || b*c <0 || a*c<0)
+  {
+    return 0;
+  }
+  else
+  {
+    if (a<0)
+    {
+      return -min(abs(a), abs(b),abs(c));
+    }
+    else
+    {
+      return min(abs(a), abs(b),abs(c));
+    }
+  }
+}
+
+void Probleme::calcul_Uxy(double x, double y, int i, int j)
+{
+  double a,b,c,q,r,s;
+  for (int indice=0; indice<8; indice++)
+  {
+    a=_U[indice][j*_NbCol+i+1]-_U[indice][j*_NbCol+i];
+    b=0.5*(_U[indice][j*_NbCol+i+1]-_U[indice][j*_NbCol+i-1]);
+    c=_U[indice][j*_NbCol+i]-_U[indice][j*_NbCol+i-1];
+    _Ux[indice][j*_NbCol+i]=Probleme::minmod(a,b,c)
+
+    q=_U[indice][(j+1)*_NbCol+i]-_U[indice][j*_NbCol+i];
+    r=0.5*(_U[indice][(j+1)*_NbCol+i]-_U[indice][(j-1)*_NbCol+i]);
+    s=_U[indice][j*_NbCol+i]-_U[indice][(j-1)*_NbCol+i];
+    _Uy[indice][j*_NbCol+i]=Probleme::minmod(q,r,s);
+  }
+}
+
+std::vector<double> Probleme::calcul_pij(double x, double y, int i, int j)
+{
+  std::vector<double> pij[8];
+
+  for(int k=0; k<8; k++)
+  {
+    pij[k]=_U[k][j*_NbCol+i]+_(x-i*_Dx)*_Ux[k][j*_NbCol+i]/_Dx+_(y-i*_Dy)*_Uy[k][j*_NbCol+i]/_Dy;
+  }
+  return pij;
+}
+
+void Probleme::calcul_g1_g2(double x, double y, int i, int j)
+{
+  _g1[0][j*_NbCol+i]=_UN[2][j*_NbCol+i];
+  _g1[1][j*_NbCol+i]=(_UN[1][j*_NbCol+i]*_UN[2][j*_NbCol+i])/_UN[0][j*_NbCol+i]-_UN[4][j*_NbCol+i]*_UN[5][j*_NbCol+i];
+  _g1[2][j*_NbCol+i]=pow(_UN[2][j*_NbCol+i],2)/_UN[0][j*_NbCol+i] + _ptilde[j*_NbCol+i] - 0.5*(pow(_UN[5][j*_NbCol+i],2));
+  _g1[3][j*_NbCol+i]=(_UN[1][j*_NbCol+i]*_UN[3][j*_NbCol+i])/_UN[0][j*_NbCol+i]-_UN[4][j*_NbCol+i]*_UN[6][j*_NbCol+i];
+  _g1[4][j*_NbCol+i]=(1./_UN[0][j*_NbCol+i])*(_UN[2][j*_NbCol+i]*_UN[4][j*_NbCol+i]-_UN[1][j*_NbCol+i]*_UN[5][j*_NbCol+i]);
+  _g1[5][j*_NbCol+i]=0.;
+  _g1[6][j*_NbCol+i]=(1./_UN[0][j*_NbCol+i])*(_UN[2][j*_NbCol+i]*_UN[6][j*_NbCol+i]-_UN[3][j*_NbCol+i]*_UN[5][j*_NbCol+i]);
+  _g1[7][j*_NbCol+i]=(_UN[7][j*_NbCol+i] + _ptilde[j*_NbCol+i])*(_UN[2][j*_NbCol+i]/_UN[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_UN[5][j*_NbCol+i];
+
+  _g2[0][j*_NbCol+i]=_US[2][j*_NbCol+i];
+  _g2[1][j*_NbCol+i]=(_US[1][j*_NbCol+i]*_US[2][j*_NbCol+i])/_US[0][j*_NbCol+i]-_US[4][j*_NbCol+i]*_US[5][j*_NbCol+i];
+  _g2[2][j*_NbCol+i]=pow(_US[2][j*_NbCol+i],2)/_US[0][j*_NbCol+i] + _ptilde[j*_NbCol+i] - 0.5*(pow(_US[5][j*_NbCol+i],2));
+  _g2[3][j*_NbCol+i]=(_US[1][j*_NbCol+i]*_US[3][j*_NbCol+i])/_US[0][j*_NbCol+i]-_US[4][j*_NbCol+i]*_US[6][j*_NbCol+i];
+  _g2[4][j*_NbCol+i]=(1./_US[0][j*_NbCol+i])*(_US[2][j*_NbCol+i]*_US[4][j*_NbCol+i]-_US[1][j*_NbCol+i]*_US[5][j*_NbCol+i]);
+  _g2[5][j*_NbCol+i]=0.;
+  _g2[6][j*_NbCol+i]=(1./_US[0][j*_NbCol+i])*(_US[2][j*_NbCol+i]*_US[6][j*_NbCol+i]-_US[3][j*_NbCol+i]*_US[5][j*_NbCol+i]);
+  _g2[7][j*_NbCol+i]=(_US[7][j*_NbCol+i] + _ptilde[j*_NbCol+i])*(_US[2][j*_NbCol+i]/_US[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_US[5][j*_NbCol+i];
+
+}
+//f pour l'ordre 2 MUSCL
+void Probleme::calcul_f1_f2(double x, double y, int i, int j)
+{
+  _f1[0][j*_NbCol+i]=_UE[1][j*_NbCol+i];
+  _f1[1][j*_NbCol+i]=pow(_UE[1][j*_NbCol+i],2)/_UE[0][j*_NbCol+i]+_ptilde[j*_NbCol+i]-0.5*pow(_UE[4][j*_NbCol+i],2);
+  _f1[2][j*_NbCol+i]=(_UE[1][j*_NbCol+i]*_UE[2][j*_NbCol+i])/_UE[0][j*_NbCol+i]-_UE[4][j*_NbCol+i]*_UE[5][j*_NbCol+i];
+  _f1[3][j*_NbCol+i]=(_UE[1][j*_NbCol+i]*_UE[3][j*_NbCol+i])/_UE[0][j*_NbCol+i]-_UE[4][j*_NbCol+i]*_UE[6][j*_NbCol+i];
+  _f1[4][j*_NbCol+i]=0.;
+  _f1[5][j*_NbCol+i]=-(1./_UE[0][j*_NbCol+i])*(_UE[2][j*_NbCol+i]*_UE[4][j*_NbCol+i]-_UE[1][j*_NbCol+i]*_UE[5][j*_NbCol+i]);
+  _f1[6][j*_NbCol+i]=(1./_UE[0][j*_NbCol+i])*(_UE[1][j*_NbCol+i]*_UE[6][j*_NbCol+i]-_UE[3][j*_NbCol+i]*_UE[4][j*_NbCol+i]);
+  _f1[7][j*_NbCol+i]=(_UE[7][j*_NbCol+i]+_ptilde[j*_NbCol+i])*(_UE[1][j*_NbCol+i]/_UE[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_UE[4][j*_NbCol+i];
+
+  _f2[0][j*_NbCol+i]=_UW[1][j*_NbCol+i];
+  _f2[1][j*_NbCol+i]=pow(_UW[1][j*_NbCol+i],2)/_UW[0][j*_NbCol+i]+_ptilde[j*_NbCol+i]-0.5*pow(_UW[4][j*_NbCol+i],2);
+  _f2[2][j*_NbCol+i]=(_UW[1][j*_NbCol+i]*_UW[2][j*_NbCol+i])/_UW[0][j*_NbCol+i]-_UW[4][j*_NbCol+i]*_UW[5][j*_NbCol+i];
+  _f2[3][j*_NbCol+i]=(_UW[1][j*_NbCol+i]*_UW[3][j*_NbCol+i])/_UW[0][j*_NbCol+i]-_UW[4][j*_NbCol+i]*_UW[6][j*_NbCol+i];
+  _f2[4][j*_NbCol+i]=0.;
+  _f2[5][j*_NbCol+i]=-(1./_UW[0][j*_NbCol+i])*(_UW[2][j*_NbCol+i]*_UW[4][j*_NbCol+i]-_UW[1][j*_NbCol+i]*_UW[5][j*_NbCol+i]);
+  _f2[6][j*_NbCol+i]=(1./_UW[0][j*_NbCol+i])*(_UW[1][j*_NbCol+i]*_UW[6][j*_NbCol+i]-_UW[3][j*_NbCol+i]*_UW[4][j*_NbCol+i]);
+  _f2[7][j*_NbCol+i]=(_UW[7][j*_NbCol+i]+_ptilde[j*_NbCol+i])*(_UW[1][j*_NbCol+i]/_UW[0][j*_NbCol+i]) - _pscal[j*_NbCol+i]*_UW[4][j*_NbCol+i];
+
+}
+
+void Probleme::calcul_flux_ordre2F(double x, double y, int i, int j)
+{
+  for (int k=0; k<5; k++)
+  {
+    _F2[k][j*_NbCol+_NbCol-1]=0.5*(_f1[k][j*_NbCol+_NbCol-1]+_f2[k][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[k][j*_NbCol]-_UE[k][j*_NbCol+_NbCol-1]);
   }
 
-  void Probleme::SaveIeration(std::string fichier)
+  _F2[5][j*_NbCol+_NbCol-1]=0.5*(_f1[5][j*_NbCol+_NbCol-1]+_f2[5][j*_NbCol])+max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[5][j*_NbCol]-_UE[5][j*_NbCol+_NbCol-1]);
+  _F2[6][j*_NbCol+_NbCol-1]=0.5*(_f1[6][j*_NbCol+_NbCol-1]+_f2[6][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[6][j*_NbCol]-_UE[6][j*_NbCol+_NbCol-1]);
+  _F2[7][j*_NbCol+_NbCol-1]=0.5*(_f1[7][j*_NbCol+_NbCol-1]+_f2[7][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[7][j*_NbCol]-_UE[7][j*_NbCol+_NbCol-1]);
+}
+
+void Probleme::calclul_flux_ordre2G(double x, double y, int i, int j)
+{
+  for (int k=0; k<8; k++)
   {
-    std::ofstream mon_fluxP;
-    mon_fluxP.open(fichier + "_p.txt", std::ios::out);
-    mon_fluxP << _t << std::endl;
+    _G2[k][j*_NbCol+i]=0.5*(_g1[k][j*_NbCol+i]+_g2[k][(j+1)*_NbCol+i])-max(abs(_beta[j*_NbCol+i]),abs(_beta[(j+1)*_NbCol+i]))*(_US[k][(j+1)*_NbCol+i]-_UN[k][j*_NbCol+i]);
+  }
+}
 
-    for (int i=0; i<_NbLignes; i++)
+void Probleme::calul_u_directions(double x, double y, int i, int j)
+{
+  std::vector<double> a[8], b[8], c[8], d[8];
+  a=Probleme::calcul_pij((i+0.5)*_Dx, j*_Dy, i,j);
+  b=Probleme::calcul_pij((i-0.5)*_Dx, j*_Dy, i,j);
+  c=Probleme::calcul_pij(i*_Dx, (j+0.5)*_Dy, i,j);
+  d=Probleme::calcul_pij(i*_Dx, (j+0.5)*_Dy, i,j);
+  for (int k=0; k<8; k++)
+  {
+    // i+1/2 à revoir
+    _UE[k][j*_NbCol+i]=a[k];
+    _UW[k][j*_NbCol+i]=b[k];
+    _UN[k][j*_NbCol+i]=c[k];
+    _US[k][j*_NbCol+i]=d[k];
+  }
+}
+
+void Probleme::Time_iteration_MUSCL()
+{
+  int compteur;
+  compteur =0;
+  _t=0.;
+  while (_t<=_tmax)
+  {
+    Probleme::SaveIeration("resultMUSCL" + std::to_string(compteur) );
+
+    for (int j=0; j<_NbLignes; j++)
     {
-      for (int j=0; j<_NbCol; j++)
+      for (int i=0; i<_NbCol; i++)
       {
-        mon_fluxP << i*_Dx << "    " << j*_Dy << "     " <<_a2[j*_NbCol+i] <<"    "<< _b[0][j*_NbCol+i]<< "    "<<  _b[1][j*_NbCol+i]<< "    "<<  _b[2][j*_NbCol+i]<<std::endl;//<< "     "<< _c1car[j*_NbCol+i]<< "     " <<_c2car[j*_NbCol+i];
-          //mon_fluxP << "     "<< _alpha[j*_NbCol+i]<< "         "<<_beta[j*_NbCol+i]<< std::endl;
-      //  mon_fluxP << i*_Dx << " " << j*_Dy << " " << _U[0][j*_NbCol+i] << "        " << _p[j*_NbCol+i] << std::endl;
-      //  mon_fluxP << i*_Dx << " " << j*_Dy << " " << _U[0][j*_NbCol+i] << std::endl;
+        Probleme::calcul_Uxy(i*_Dx, j*_Dy, i, j)
+        Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_p_tilde(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_pscal(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_f1_f2(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_g1_g2(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_a2(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_b(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_ck(i*_Dx, j*_Dy, i, j, 1);
+        Probleme::calcul_ck(i*_Dx, j*_Dy, i, j, 2);
+        Probleme::calcul_alpha_beta(i*_Dx, j*_Dy, i, j);
+      }
+    }
+    for (int j=0; j<_NbLignes-1; j++)
+    {
+      for (int i=0; i<_NbCol-1; i++)
+      {
+        Probleme::flux_f(i*_Dx, j*_Dy, i, j);
+        Probleme::flux_g(i*_Dx, j*_Dy, i, j);
+      }
+    }
+    for (int j=0; j<_NbLignes-1; j++)
+    {
+      Probleme::flux_g((_NbCol-1)*_Dx, j*_Dy, _NbCol-1, j);
+    }
+    for (int i=0; i<_NbCol-1; i++)
+    {
+      Probleme::flux_f(i*_Dx, (_NbLignes-1)*_Dy, i, _NbLignes-1);
+    }
 
+    // conditions aux limites
+    for (int i=0; i<_NbCol; i++)
+    {
+      for (int k=0; k<8; k++)
+      {
+        _gg[k][(_NbLignes-1)*_NbCol+i]=0.5*(_g[k][(_NbLignes-1)*_NbCol+i]+_g[k][i])-max(abs(_beta[(_NbLignes-1)*_NbCol+i]),abs(_beta[i]))*(_U[k][i]-_U[k][(_NbLignes-1)*_NbCol+i]);
       }
     }
 
-    mon_fluxP.close();
+    for (int j=0; j<_NbLignes;j++)
+    {
+      for (int k=0; k<5; k++)
+      {
+        _ff[k][j*_NbCol+_NbCol-1]=0.5*(_f[k][j*_NbCol+_NbCol-1]+_f[k][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[k][j*_NbCol]-_U[k][j*_NbCol+_NbCol-1]);
+      }
 
-    // std::ofstream mon_fluxU;
-    // mon_fluxU.open(fichier + "_u.txt", std::ios::out);
-    // mon_fluxU << "# champ de vitesses sur un maillage carré" << std::endl;
-    //
-    // std::vector<double> norme;
-    // norme.resize(Nx1*Nx1);
-    //
-    // double normeMax = 0;
-    //
-    // for (int i = 0; i < Nx1; i++)
+      _ff[5][j*_NbCol+_NbCol-1]=0.5*(_f[5][j*_NbCol+_NbCol-1]+_f[5][j*_NbCol])+max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[5][j*_NbCol]-_U[5][j*_NbCol+_NbCol-1]);
+      _ff[6][j*_NbCol+_NbCol-1]=0.5*(_f[6][j*_NbCol+_NbCol-1]+_f[6][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[6][j*_NbCol]-_U[6][j*_NbCol+_NbCol-1]);
+      _ff[7][j*_NbCol+_NbCol-1]=0.5*(_f[7][j*_NbCol+_NbCol-1]+_f[7][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_U[7][j*_NbCol]-_U[7][j*_NbCol+_NbCol-1]);
+    }
+
+
+    double maxeigenvalues,test,maxa,maxb,minrho,maxB1;
+    maxeigenvalues=0;
+    // maxa = 0;
+    // maxb = 0;
+    // minrho = 12;
+    // maxB1 = 0;
+    for (int j=0; j<_NbLignes; j++)
+    {
+      for (int i=0; i<_NbCol; i++)
+      {
+        test=max(abs(_alpha[j*_NbCol+i]),abs(_beta[j*_NbCol+i]));
+        if (test>maxeigenvalues)
+        {
+          maxeigenvalues=test;
+        }
+      }
+    }
+
+    // for (int j=0; j<_NbLignes; j++)
     // {
-    //   for (int j = 0; j < Nx1; j++)
+    //   for (int i=0; i<_NbCol; i++)
     //   {
-    //     double u1 = U[j + i*Nx1];
-    //     double u2 = U[Nx1*Nx1 + j + i*Nx1];
-    //     norme[j + i*Nx1] = sqrt(u1*u1 + u2*u2);
-    //     if (norme[j+i*Nx1] > normeMax)
+    //     test=_a2[j*_NbCol+i];
+    //     if (test>maxa)
     //     {
-    //       normeMax = norme[j + i*Nx1];
+    //       maxa=test;
     //     }
     //   }
     // }
     //
-    // for (int i = 0; i < Nx1; i++)
+    // for (int j=0; j<_NbLignes; j++)
     // {
-    //   for (int j = 0; j < Nx1; j++)
+    //   for (int i=0; i<_NbCol; i++)
     //   {
-    //     double u1 = U[j + i*Nx1];
-    //     double u2 = U[Nx1*Nx1 + j + i*Nx1];
-    //     double coeff = dx1/normeMax;
-    //     mon_fluxU << j*dx1 << " " << i*dx1 << " " << u1*coeff << " " << u2*coeff << " " << norme[j + i*Nx1] << std::endl;
+    //     test=_b[0][j*_NbCol+i];
+    //     if (test>maxb)
+    //     {
+    //       maxb=test;
+    //     }
     //   }
     // }
     //
-    // mon_fluxU.close();
+    // for (int j=0; j<_NbLignes; j++)
+    // {
+    //   for (int i=0; i<_NbCol; i++)
+    //   {
+    //     test=_U[0][j*_NbCol+i];
+    //     if (test<minrho)
+    //     {
+    //       minrho=test;
+    //     }
+    //   }
+    // }
+    //
+    // for (int j=0; j<_NbLignes; j++)
+    // {
+    //   for (int i=0; i<_NbCol; i++)
+    //   {
+    //     test=_U[4][j*_NbCol+i];
+    //     if (test>maxB1)
+    //     {
+    //       maxB1=test;
+    //     }
+    //   }
+    // }
+
+  //  std::cout<< "max B1 = " << maxB1 <<std::endl;
+    _Dt=0.45*_Dx/maxeigenvalues;
+
+    for (int j=1; j<_NbLignes; j++)
+    {
+      for (int i=1; i<_NbCol; i++)
+      {
+        for(int indice=0; indice<8; indice++)
+        {
+          _Uapres[indice][j*_NbCol+i]=_U[indice][j*_NbCol+i]-_Dt*((1./_Dx)*(_ff[indice][j*_NbCol+i]-_ff[indice][j*_NbCol+i-1])+(1./_Dy)*(_gg[indice][j*_NbCol+i]-_gg[indice][(j-1)*_NbCol+i]));
+        }
+      }
+    }
+
+    for (int i=1; i<_NbCol; i++)
+    {
+      for(int indice=0; indice<8; indice++)
+      {
+        _Uapres[indice][i]=_U[indice][i]-_Dt*((1./_Dx)*(_ff[indice][i]-_ff[indice][i-1])+(1./_Dy)*(_gg[indice][i]-_gg[indice][(_NbLignes-1)*_NbCol+i]));
+
+      }
+    }
+
+    for (int j=1; j<_NbLignes; j++)
+    {
+      for(int indice=0; indice<8; indice++)
+      {
+        _Uapres[indice][j*_NbCol]=_U[indice][j*_NbCol]-_Dt*((1./_Dx)*(_ff[indice][j*_NbCol]-_ff[indice][j*_NbCol+_NbCol-1])+(1./_Dy)*(_gg[indice][j*_NbCol]-_gg[indice][(j-1)*_NbCol]));
+      }
+    }
+
+    for(int indice=0; indice<8; indice++)
+    {
+      _Uapres[indice][0]=_U[indice][0]-_Dt*((1./_Dx)*(_ff[indice][0]-_ff[indice][_NbCol-1])+(1./_Dy)*(_gg[indice][0]-_gg[indice][_NbLignes-1]));
+    }
+
+    _t=_t+_Dt;
+
+    compteur +=1;
+   //  std::cout<< compteur <<std::endl;
+
+    _U=_Uapres;
+
   }
+    //  Probleme::SaveIeration("result" + std::to_string(_t));
+}
+
+void Probleme::SaveIeration(std::string fichier)
+{
+  std::ofstream mon_fluxP;
+  mon_fluxP.open(fichier + "_p.txt", std::ios::out);
+  mon_fluxP << _t << std::endl;
+
+  for (int i=0; i<_NbLignes; i++)
+  {
+    for (int j=0; j<_NbCol; j++)
+    {
+      mon_fluxP << i*_Dx << "    " << j*_Dy << "     " <<_a2[j*_NbCol+i] <<"    "<< _b[0][j*_NbCol+i]<< "    "<<  _b[1][j*_NbCol+i]<< "    "<<  _b[2][j*_NbCol+i]<<std::endl;//<< "     "<< _c1car[j*_NbCol+i]<< "     " <<_c2car[j*_NbCol+i];
+        //mon_fluxP << "     "<< _alpha[j*_NbCol+i]<< "         "<<_beta[j*_NbCol+i]<< std::endl;
+    //  mon_fluxP << i*_Dx << " " << j*_Dy << " " << _U[0][j*_NbCol+i] << "        " << _p[j*_NbCol+i] << std::endl;
+    //  mon_fluxP << i*_Dx << " " << j*_Dy << " " << _U[0][j*_NbCol+i] << std::endl;
+
+    }
+  }
+
+  mon_fluxP.close();
+
+  // std::ofstream mon_fluxU;
+  // mon_fluxU.open(fichier + "_u.txt", std::ios::out);
+  // mon_fluxU << "# champ de vitesses sur un maillage carré" << std::endl;
+  //
+  // std::vector<double> norme;
+  // norme.resize(Nx1*Nx1);
+  //
+  // double normeMax = 0;
+  //
+  // for (int i = 0; i < Nx1; i++)
+  // {
+  //   for (int j = 0; j < Nx1; j++)
+  //   {
+  //     double u1 = U[j + i*Nx1];
+  //     double u2 = U[Nx1*Nx1 + j + i*Nx1];
+  //     norme[j + i*Nx1] = sqrt(u1*u1 + u2*u2);
+  //     if (norme[j+i*Nx1] > normeMax)
+  //     {
+  //       normeMax = norme[j + i*Nx1];
+  //     }
+  //   }
+  // }
+  //
+  // for (int i = 0; i < Nx1; i++)
+  // {
+  //   for (int j = 0; j < Nx1; j++)
+  //   {
+  //     double u1 = U[j + i*Nx1];
+  //     double u2 = U[Nx1*Nx1 + j + i*Nx1];
+  //     double coeff = dx1/normeMax;
+  //     mon_fluxU << j*dx1 << " " << i*dx1 << " " << u1*coeff << " " << u2*coeff << " " << norme[j + i*Nx1] << std::endl;
+  //   }
+  // }
+  //
+  // mon_fluxU.close();
+}
