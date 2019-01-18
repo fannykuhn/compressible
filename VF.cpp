@@ -578,7 +578,7 @@ void Probleme::calul_u_directions(double x, double y, int i, int j)
   a=Probleme::calcul_pij((i+0.5)*_Dx, j*_Dy, i,j);
   b=Probleme::calcul_pij((i-0.5)*_Dx, j*_Dy, i,j);
   c=Probleme::calcul_pij(i*_Dx, (j+0.5)*_Dy, i,j);
-  d=Probleme::calcul_pij(i*_Dx, (j+0.5)*_Dy, i,j);
+  d=Probleme::calcul_pij(i*_Dx, (j-0.5)*_Dy, i,j);
   for (int k=0; k<8; k++)
   {
     // i+1/2 à revoir
@@ -601,42 +601,78 @@ void Probleme::Time_iteration_MUSCL()
     //cas spéciaux i=0
 
     double a,b,c,q,r,s, a1, b1, c1, q1,r1,s1;
-    for (int j=0;j<_NbLignes; j++)
     for (int indice=0; indice<8; indice++)
     {
-      a=_U[indice][j*_NbCol+1]-_U[indice][j*_NbCol];
-      b=0.5*(_U[indice][j*_NbCol+1]-_U[indice][j*_NbCol+_NbCol-1]);
-      c=_U[indice][j*_NbCol]-_U[indice][j*_NbCol+_NbCol-1];
-      _Ux[indice][j*_NbCol]=Probleme::minmod(a,b,c)
+      for (int j=0;j<_NbLignes; j++)
+      {
+        a=_U[indice][j*_NbCol+1]-_U[indice][j*_NbCol];
+        b=0.5*(_U[indice][j*_NbCol+1]-_U[indice][j*_NbCol+_NbCol-1]);
+        c=_U[indice][j*_NbCol]-_U[indice][j*_NbCol+_NbCol-1];
+        _Ux[indice][j*_NbCol]=Probleme::minmod(a,b,c);
 
-      a1=_U[indice][j*_NbCol+i+1]-_U[indice][j*_NbCol+i];
-      b1=0.5*(_U[indice][j*_NbCol+i+1]-_U[indice][j*_NbCol+i-1]);
-      c1=_U[indice][j*_NbCol+i]-_U[indice][j*_NbCol+i-1];
-      _Ux[indice][j*_NbCol+i]=Probleme::minmod(a,b,c)
-
-      q=_U[indice][(j+1)*_NbCol+i]-_U[indice][j*_NbCol+i];
-      r=0.5*(_U[indice][(j+1)*_NbCol+i]-_U[indice][(j-1)*_NbCol+i]);
-      s=_U[indice][j*_NbCol+i]-_U[indice][(j-1)*_NbCol+i];
-      _Uy[indice][j*_NbCol+i]=Probleme::minmod(q,r,s);
+        a1=_U[indice][j*_NbCol]-_U[indice][j*_NbCol+_NbCol-1];
+        b1=0.5*(_U[indice][j*_NbCol]-_U[indice][j*_NbCol+_NbCol-2]);
+        c1=_U[indice][j*_NbCol+_NbCol-1]-_U[indice][j*_NbCol+_NbCol-2];
+        _Ux[indice][j*_NbCol+_NbCol-1]=Probleme::minmod(a1,b1,c1);
       }
 
-      q=_U[indice][(j+1)*_NbCol+i]-_U[indice][j*_NbCol+i];
-      r=0.5*(_U[indice][(j+1)*_NbCol+i]-_U[indice][(j-1)*_NbCol+i]);
-      s=_U[indice][j*_NbCol+i]-_U[indice][(j-1)*_NbCol+i];
-      _Uy[indice][j*_NbCol+i]=Probleme::minmod(q,r,s);
-    }
+      for (int i=0; i<_NbCol; i++)
+      {
+        q=_U[indice][_NbCol+i]-_U[indice][i];
+        r=0.5*(_U[indice][_NbCol+i]-_U[indice][(_NbLignes-1)*_NbCol+i]);
+        s=_U[indice][i]-_U[indice][(_NbLignes-1)*_NbCol+i];
+        _Uy[indice][i]=Probleme::minmod(q,r,s);
 
+
+        q1=_U[indice][i]-_U[indice][(_NbLignes-1)*_NbCol+i];
+        r1=0.5*(_U[indice][i]-_U[indice][(_NbLignes-2)*_NbCol+i]);
+        s1=_U[indice][(_NbLignes-1)*_NbCol+i]-_U[indice][(_NbLignes-2)*_NbCol+i];
+        _Uy[indice][(_NbLignes-1)*_NbCol+i]=Probleme::minmod(q1,r1,s1);
+      }
+    }
     //reconstruction
     for (int j=1; j<_NbLignes-1; j++)
     {
       for (int i=1; i<_NbCol-1; i++)
       {
-        Probleme::calcul_Uxy(i*_Dx, j*_Dy, i, j);
+        Probleme::calcul_Uxy(i*_Dx, j*_Dy, i, j);std::vector<double> a[8], b[8], c[8], d[8];
+  a=Probleme::calcul_pij((i+0.5)*_Dx, j*_Dy, i,j);
+  b=Probleme::calcul_pij((i-0.5)*_Dx, j*_Dy, i,j);
+  c=Probleme::calcul_pij(i*_Dx, (j+0.5)*_Dy, i,j);
+  d=Probleme::calcul_pij(i*_Dx, (j+0.5)*_Dy, i,j);
+  for (int k=0; k<8; k++)
+  {
+    // i+1/2 à revoir
+    _UE[k][j*_NbCol+i]=a[k];
+    _UW[k][j*_NbCol+i]=b[k];
+    _UN[k][j*_NbCol+i]=c[k];
+    _US[k][j*_NbCol+i]=d[k];
+  }
         Probleme::calcul_u_directions(i*_Dx, j*_Dy, i, j);
         Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
         Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
         Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
         Probleme::calcul_p(i*_Dx, j*_Dy, i, j);
+      }
+    }
+  //u directions
+    std::vector<double> aa[8], bb[8], cc[8], dd[8];
+    aa=Probleme::calcul_pij((0.5)*_Dx, j*_Dy, 0,j);
+    bb=Probleme::calcul_pij((_NbCol-1-0.5)*_Dx, j*_Dy, 0,j);
+
+
+    cc=Probleme::calcul_pij(i*_Dx, (0.5)*_Dy, i,_NbLignes-1);
+    dd=Probleme::calcul_pij(i*_Dx, (_NbLignes-1-0.5)*_Dy, i,_NbLignes-1);
+    for (int k=0; k<8; k++)
+    {
+      // i+1/2 à revoir
+      _UE[k][j*_NbCol+i]=a[k];
+      _UW[k][j*_NbCol+i]=b[k];
+      _UN[k][j*_NbCol+i]=c[k];
+      _US[k][j*_NbCol+i]=d[k];
+    }
+
+
     for (int j=0; j<_NbLignes; j++)
     {
       for (int i=0; i<_NbCol; i++)
