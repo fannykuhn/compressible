@@ -2,9 +2,9 @@
 
 int main()
 {
-  Probleme Pb1(200,200);
+  Probleme Pb1(10,10);
   Pb1.initialize_u();
-  Pb1.TimeIteration();
+  Pb1.TimeIteration_ordre1();
 
   return 0;
 }

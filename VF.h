@@ -64,7 +64,9 @@ public:
 
   double minmod(double a, double b, double c);
 
-  void calcul_Uxy(double x, double y, int i, int j);
+  void calcul_Ux(double x, double y, int i, int j);
+
+  void calcul_Uy(double x, double y, int i, int j);
 
   std::vector<double> calcul_pij(double x, double y, int i, int j);
 
@@ -74,9 +76,9 @@ public:
 
   void calcul_flux_ordre2F(double x, double y, int i, int j);
 
-  void calclul_flux_ordre2G(double x, double y, int i, int j);
+  void calcul_flux_ordre2G(double x, double y, int i, int j);
 
-  void calul_u_directions(double x, double y, int i, int j);
+  void calcul_u_directions(double x, double y, int i, int j);
 
   void Time_iteration_MUSCL();
 
