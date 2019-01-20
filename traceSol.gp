@@ -10,5 +10,5 @@ set view 60,45
 set ztics
 unset key
 
-set output "resultats1_p.pdf"
-plot "result0.07978533_p.txt" u 1:2:3 with image
+set output "aaresultmuscl1_p.pdf"
+plot "resultMUSCL1_p.txt" u 1:2:11 with image

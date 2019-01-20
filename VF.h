@@ -7,14 +7,14 @@
 class Probleme
 {
 private:
-  int _NbLignes, _NbCol;
+  int _NbLignes, _NbCol, _choix;
   double _Dx, _Dy, _Dt, _tmax, _t,_Lx,_Ly, _gamma;
   std::vector<std::vector<double>> _f, _g, _U, _b, _ff, _gg, _Uapres, _Ux, _Uy, _UE, _UN, _US, _UW,_g1, _g2, _f1, _f2, _F2, _G2;
   std::vector<double> _a2, _c1car, _c2car, _alpha, _beta, _p, _ptilde, _pscal;
 
 public:
 
-  Probleme(int NbLignes, int NbCol);
+  Probleme(int NbLignes, int NbCol, int choix);
 
   ~Probleme();
 
