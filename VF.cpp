@@ -228,7 +228,7 @@ double Probleme::B1(double x, double y)
 {
   if(_choix==1)
   {
-    return -sin(y);
+    return 0.;//-sin(y);
   }
   else if (_choix==2)
   {
@@ -251,7 +251,7 @@ double Probleme::B2(double x, double y)
 {
   if(_choix==1)
   {
-    return sin(2.*x);
+    return 0.;//sin(2.*x);
   }
   else if (_choix==2)
   {
@@ -539,7 +539,7 @@ void Probleme::TimeIteration_ordre1()
     }
 
   //  std::cout<< "max B1 = " << maxB1 <<std::endl;
-    _Dt=0.45*_Dx/(2*maxeigenvalues);
+    _Dt=0.45*_Dx/(4*maxeigenvalues);
 
     for (int j=1; j<_NbLignes; j++)
     {
