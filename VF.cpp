@@ -70,7 +70,7 @@ Probleme::Probleme(int NbLignes, int NbCol, int choix)
   _Dx=_Lx/(_NbCol);
   _Dy=_Ly/(_NbLignes);
   _gamma=1.4;
-  //_tmax=0.125;
+  //_tmax=0.06;
   _tmax=acos(-1);
 
 
@@ -228,7 +228,7 @@ double Probleme::B1(double x, double y)
 {
   if(_choix==1)
   {
-    return 0.;//-sin(y);
+    return 1.;//-sin(y);
   }
   else if (_choix==2)
   {
@@ -251,7 +251,7 @@ double Probleme::B2(double x, double y)
 {
   if(_choix==1)
   {
-    return 0.;//sin(2.*x);
+    return 1.;//sin(2.*x);
   }
   else if (_choix==2)
   {
@@ -447,7 +447,11 @@ void Probleme::TimeIteration_ordre1()
   _t=0.;
   while (_t<=_tmax)
   {
-    Probleme::SaveIeration("result" + std::to_string(compteur) );
+    if(compteur%10==0)
+    {
+      Probleme::SaveIeration("result" + std::to_string(compteur) );
+    }
+
 
     for (int j=0; j<_NbLignes; j++)
     {
@@ -871,22 +875,39 @@ void Probleme::Time_iteration_MUSCL()
     {
       for (int k=0; k<8; k++)
       {
-        _G2[k][(_NbLignes-1)*_NbCol+i]=0.5*(_g1[k][(_NbLignes-1)*_NbCol+i]+_g2[k][i])-max(abs(_beta[(_NbLignes-1)*_NbCol+i]),abs(_beta[i]))*(_US[k][i]-_UN[k][(_NbLignes-1)*_NbCol+i]);
+        if (_choix==1)
+        {
+          _G2[k][(_NbLignes-1)*_NbCol+i]=0.5*(_g1[k][(_NbLignes-1)*_NbCol+i]+_g2[k][i])-max(abs(_beta[(_NbLignes-1)*_NbCol+i]),abs(_beta[i]))*(_US[k][i]-_UN[k][(_NbLignes-1)*_NbCol+i]);
+
+        }
+        else if (_choix==2 ||_choix==3)
+        {
+          _G2[k][(_NbLignes-1)*_NbCol+i]=_G2[k][(_NbLignes-2)*_NbCol+i];
+        }
       }
     }
 
     for (int j=0; j<_NbLignes;j++)
     {
-      for (int k=0; k<5; k++)
+      if (_choix==1)
       {
-        _F2[k][j*_NbCol+_NbCol-1]=0.5*(_f1[k][j*_NbCol+_NbCol-1]+_f2[k][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[k][j*_NbCol]-_UE[k][j*_NbCol+_NbCol-1]);
+        for (int k=0; k<5; k++)
+        {
+          _F2[k][j*_NbCol+_NbCol-1]=0.5*(_f1[k][j*_NbCol+_NbCol-1]+_f2[k][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[k][j*_NbCol]-_UE[k][j*_NbCol+_NbCol-1]);
+        }
+
+        _F2[5][j*_NbCol+_NbCol-1]=0.5*(_f1[5][j*_NbCol+_NbCol-1]+_f2[5][j*_NbCol])+max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[5][j*_NbCol]-_UE[5][j*_NbCol+_NbCol-1]);
+        _F2[6][j*_NbCol+_NbCol-1]=0.5*(_f1[6][j*_NbCol+_NbCol-1]+_f2[6][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[6][j*_NbCol]-_UE[6][j*_NbCol+_NbCol-1]);
+        _F2[7][j*_NbCol+_NbCol-1]=0.5*(_f1[7][j*_NbCol+_NbCol-1]+_f2[7][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[7][j*_NbCol]-_UE[7][j*_NbCol+_NbCol-1]);
       }
-
-      _F2[5][j*_NbCol+_NbCol-1]=0.5*(_f1[5][j*_NbCol+_NbCol-1]+_f2[5][j*_NbCol])+max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[5][j*_NbCol]-_UE[5][j*_NbCol+_NbCol-1]);
-      _F2[6][j*_NbCol+_NbCol-1]=0.5*(_f1[6][j*_NbCol+_NbCol-1]+_f2[6][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[6][j*_NbCol]-_UE[6][j*_NbCol+_NbCol-1]);
-      _F2[7][j*_NbCol+_NbCol-1]=0.5*(_f1[7][j*_NbCol+_NbCol-1]+_f2[7][j*_NbCol])-max(abs(_alpha[j*_NbCol+_NbCol-1]),abs(_alpha[j*_NbCol]))*(_UW[7][j*_NbCol]-_UE[7][j*_NbCol+_NbCol-1]);    }
-
-
+      else if (_choix==2 || _choix==3)
+      {
+        for (int k=0; k<8; k++)
+        {
+          _F2[k][j*_NbCol+_NbCol-1]=_F2[k][j*_NbCol+_NbCol-2];
+        }
+      }
+    }
     double maxeigenvalues,test;
     maxeigenvalues=0;
     for (int j=0; j<_NbLignes; j++)
@@ -918,8 +939,14 @@ void Probleme::Time_iteration_MUSCL()
     {
       for(int indice=0; indice<8; indice++)
       {
+        if (_choix==1)
+        {
         _Uapres[indice][i]=_U[indice][i]-_Dt*((1./_Dx)*(_F2[indice][i]-_F2[indice][i-1])+(1./_Dy)*(_G2[indice][i]-_G2[indice][(_NbLignes-1)*_NbCol+i]));
-
+        }
+        else if (_choix==2 || _choix==3)
+        {
+          _Uapres[indice][i]=_Uapres[indice][i+_NbCol];
+        }
       }
     }
 
@@ -927,14 +954,28 @@ void Probleme::Time_iteration_MUSCL()
     {
       for(int indice=0; indice<8; indice++)
       {
+        if (_choix==1)
+        {
         _Uapres[indice][j*_NbCol]=_U[indice][j*_NbCol]-_Dt*((1./_Dx)*(_F2[indice][j*_NbCol]-_F2[indice][j*_NbCol+_NbCol-1])+(1./_Dy)*(_G2[indice][j*_NbCol]-_G2[indice][(j-1)*_NbCol]));
+        }
+
+      else if (_choix==2 || _choix==3)
+      {
+        _Uapres[indice][j*_NbCol]=_Uapres[indice][j*_NbCol+1];
       }
+    }
     }
 
     for(int indice=0; indice<8; indice++)
     {
+      if(_choix==1)
+      {
       _Uapres[indice][0]=_U[indice][0]-_Dt*((1./_Dx)*(_F2[indice][0]-_F2[indice][_NbCol-1])+(1./_Dy)*(_G2[indice][0]-_G2[indice][(_NbLignes-1)*_NbCol]));
-    }
+      }
+      else if (_choix==2 || _choix==3)
+      {
+        _Uapres[indice][0]=_Uapres[indice][1];
+      }
 
     _t=_t+_Dt;
 
@@ -945,6 +986,7 @@ void Probleme::Time_iteration_MUSCL()
 
   }
     //  Probleme::SaveIeration("result" + std::to_string(_t));
+}
 }
 
 void Probleme::SaveIeration(std::string fichier)
